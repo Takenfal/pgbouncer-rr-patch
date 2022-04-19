@@ -185,7 +185,11 @@ SELECT prodname, SUM(total) FROM product_sales GROUP BY prodname ORDER BY prodna
 
 **~~Install~~**  
 
-<h3 align="center">:warning::warning:This section is no more valid. Installation instructions are outdated. Skip to the [new updated section](#Installation updates)::warning::warning:</h3>
+<h3 align="center">:warning::warning:	This section is no more valid. Installation instructions are outdated	:warning::warning:</h3>
+
+
+#### Skip to the [new updated installation](https://github.com/Takenfal/pgbouncer-rr-patch#installation-updates "new updated installation")
+
 
 ~~Download and install pgbouncer-rr by running the following commands (Amazon Linux/RHEL/CentOS):~~
 ```
