@@ -183,8 +183,11 @@ SELECT prodname, SUM(total) FROM product_sales GROUP BY prodname ORDER BY prodna
 
 # Getting Started
 
-**Install**  
-Download and install pgbouncer-rr by running the following commands (Amazon Linux/RHEL/CentOS):
+**~~Install~~**  
+
+<h3 align="center">:warning::warning:**This section is no more valid. Installation instructions are outdated. Skip to the [new updated section](#Installation updates):**:warning::warning:</h3>
+
+~~Download and install pgbouncer-rr by running the following commands (Amazon Linux/RHEL/CentOS):~~
 ```
 # install required packages - see https://github.com/pgbouncer/pgbouncer#building
 sudo yum install libevent-devel openssl-devel python-devel libtool git patch make -y
@@ -273,3 +276,56 @@ Copyright 2015-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Amazon Software License (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at http://aws.amazon.com/asl/ or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
 
+
+# Installation updates
+
+The guide you read above is out of date. This means that following the istructions leads to tons of errors, and that's because of both python and the version of pgbouncer itself. So here and updated step-by-step of it.
+
+1. Before getting started, everything were tested on a EC2 instance in AWS. More precisely, the instance used is a **T3a** (AMD EPYC 7000) With the following specs:
+	- **Operating system**: Amazon Linux 2
+	- **Kernel version**: 5.10.106-102.504.amzn2.x86_64
+	- **packages manager**: Yum (obviously)
+
+2. First and foremost the version mentioned on the installation steps is wrong: you don't need the ~~`1_12_0`~~ but the **`1_16_1`** and only that in order for the patvh to work properly.  Any other version different from the latter will give you a hook error during the patch.
+
+3. Beside all the needed stuff in order for the pgbouncer to compile, you need **python3.8-devel**. Other versions will fail the make command.
+
+4. Another needed thing is to copy all the C libraries of python3.8-devel inside the **include directory **of the pgbouncer, because the make will search for them there.
+
+That's it. This should give you a fresh installation of the patched pgbouncer software with the route and rewrite patch. Here all the commands you'll need to perform:
+
+```bash
+sudo yum update
+sudo yum install libevent-devel openssl-devel libtool git patch make -y
+sudo yum install -y python38 python38-devel
+sudo rm /usr/bin/python
+sudo ln -s /usr/bin/python3.8 /usr/bin/python
+sudo nano /usr/bin/yum #Check the description below
+cd pgbouncer-rr-patch/
+./install-pgbouncer-rr-patch.sh ../pgbouncer
+sudo cp -R /usr/include/python3.8/* include/
+git submodule init
+git submodule update
+./autogen.sh
+./configure
+make
+sudo make install
+```
+
+- **Line 2**: As you can see the installation of python is missing compared to the original instructions
+- **Line 3**: Installing the right version of Python
+- **Line 4 and 5**: Makes a symbolic link to the new version of python (useful for the make command later)
+- **Line 6**: This is mandatory, otherwise Yum won't work anymore. Yum works only with Python2, so since we just set Python 3.8 as default, we need to edit the first line from`#!/usr/bin/python`to`#!/usr/bin/python2`
+- **Line 7**: From now on, it begins the installation of the patch and the patched pgbouncer.
+- **Line 9**: Except for this line; this copies the C libraries of python needed for the make command inside the pgbouncer/include directory.
+
+
+If everythong went fine, this should be the output of the last command (sudo make install):
+```
+[ec2-user@ip-**-***-***-***-*** pgbouncer]$ sudo make install
+	INSTALL  pgbouncer /usr/local/bin
+	INSTALL  README.md /usr/local/share/doc/pgbouncer
+	INSTALL  etc/pgbouncer.ini /usr/local/share/doc/pgbouncer
+	INSTALL  etc/userlist.txt /usr/local/share/doc/pgbouncer
+```
+Enjoy!
